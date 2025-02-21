@@ -56,14 +56,30 @@ async function run() {
       if (category) {
         filter.category = category;
       }
-      const result = await taskCollection.find(filter).sort({index:1}).toArray();
+      const result = await taskCollection
+        .find(filter)
+        .sort({ index: 1 })
+        .toArray();
       res.send(result);
     });
 
     // upate on drag
     app.patch("/task", async (req, res) => {
+      const { type } = req.query;
+      if (type === "edit") {
+        const updateDoc = req.body;
+        const filter = { _id: new ObjectId(updateDoc.id) };
+        const updateDocs = {
+          $set: {
+            name: updateDoc.name,
+            description: updateDoc.description,
+          },
+        };
+        const result = await taskCollection.updateOne(filter, updateDocs);
+        res.send(result);
+      }
+      
       const { task } = req.body;
-
       const bulkOperations = task.map((taskItem, index) => {
         return {
           updateOne: {
@@ -72,10 +88,8 @@ async function run() {
           },
         };
       });
-
-      const result = await taskCollection.bulkWrite(bulkOperations); // Perform bulk update
+      const result = await taskCollection.bulkWrite(bulkOperations);
       res.status(200).json(result);
-      console.log("done");
     });
   } finally {
   }
