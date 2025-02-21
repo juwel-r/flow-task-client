@@ -63,7 +63,7 @@ async function run() {
       res.send(result);
     });
 
-    // upate on drag
+    // update
     app.patch("/task", async (req, res) => {
       const { type } = req.query;
       if (type === "edit") {
@@ -76,9 +76,9 @@ async function run() {
           },
         };
         const result = await taskCollection.updateOne(filter, updateDocs);
-        res.send(result);
+        return res.send(result);
       }
-      
+
       const { task } = req.body;
       const bulkOperations = task.map((taskItem, index) => {
         return {
@@ -90,6 +90,14 @@ async function run() {
       });
       const result = await taskCollection.bulkWrite(bulkOperations);
       res.status(200).json(result);
+    });
+
+    app.delete("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await taskCollection.deleteOne(filter);
+      res.send(result);
+      console.log(id);
     });
   } finally {
   }
